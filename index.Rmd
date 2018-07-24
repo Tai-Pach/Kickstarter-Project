@@ -4,7 +4,7 @@ output:
   html_document:
     theme: journal
     highlight: textmate
-    code_folding: hide
+    code_folding: show
 ---
 
 Have you ever had a creative project in mind but lacked the funds to bring it to life?
@@ -17,7 +17,7 @@ Not to deter you, but only about 36% of projects get funded.  So what is the mag
 
 
 *Preliminary data cleaning and feature engineering*
-```{r, message=FALSE}
+```{r, message=FALSE, collapse=TRUE}
 library(dplyr)
 library(data.table)
 library(kableExtra)
@@ -35,14 +35,15 @@ kickstarter = kickstarter[c(-2843, -48148, -75398, -94580, -247914, -273780, -31
 ####Feature Engineering:
 **Does the season affect project success or failure?**
 In my EDA of the Kickstarter data set in my [R shiny app](https://taipach.shinyapps.io/Kickstarter-Shiny-App-master/) (*see the calendar graph*), I noticed that more projects tend to be launched in the summer months (June-September).
-Maybe winter holidays veer attention away from kickstarter projects. Or people are less likely to back a project when they have to spend their money on holiday gifts. 
+Maybe winter holidays veer attention away from kickstarter projects. Or people are less likely to back a project when they have to spend their money on holiday gifts.
 
-> Let's add a column for duration of the project (in days).
+> <span style="color:red">Let's add another column that tells the season in which the project was launched.</span>
 
 **Does the duration of the project determine its success or failure?**
 Super short projects might not have a chance to generate enough buzz.  Long projects might deter people from backing because the deadline is no where in sight.
 
-> Let's add another column that tells the season in which the project was launched.
+> <span style="color:red">Let's add a column for duration of the project (in days).</span>
+
 
 ```{r}
 # covert deadline values to date type
@@ -132,12 +133,20 @@ y = data.frame(testset[,1])
 prediction = cbind(x,y)
 ```
 
+
+####Predictions vs Actual Project Outcomes (First 50 predictions)
+```{r}
+head(prediction, 50) %>% kable() %>%
+  kable_styling() %>% scroll_box()
+```
+
+
 ####Number of missclassified predictions
 ```{r}
 #calculate the number of misclassified predictions
 sum(prediction[,1]!=prediction[,2])
 ```
-
+####F1-score Results
 ```{r}
 F1_Score(y_true = prediction$testset...1.,y_pred = prediction$svm.pred, positive = "successful")
 ```

@@ -114,7 +114,7 @@ $(document).ready(function () {
 </style>
 <script>
 $(document).ready(function () {
-  window.initializeCodeFolding("hide" === "show");
+  window.initializeCodeFolding("show" === "show");
 });
 </script>
 
@@ -151,24 +151,25 @@ library(kableExtra)
 library(e1071)
 library(MLmetrics)
 
-kickstarter &lt;- fread('kickstarter.csv', header=T)</code></pre>
-<pre><code>## 
-Read 34.3% of 378661 rows
-Read 60.7% of 378661 rows
-Read 76.6% of 378661 rows
-Read 378661 rows and 15 (of 15) columns from 0.054 GB file in 00:00:05</code></pre>
-<pre class="r"><code>kickstarter$ID &lt;- as.character(kickstarter$ID)
+kickstarter &lt;- fread('kickstarter.csv', header=T)
+## 
+Read 39.6% of 378661 rows
+Read 73.9% of 378661 rows
+Read 92.4% of 378661 rows
+Read 378661 rows and 15 (of 15) columns from 0.054 GB file in 00:00:05
+kickstarter$ID &lt;- as.character(kickstarter$ID)
 # remove 7 observations that have incorrect launch dates (year says &quot;1970&quot;)
-kickstarter = kickstarter[c(-2843, -48148, -75398, -94580, -247914, -273780, -319003),]</code></pre>
+kickstarter = kickstarter[c(-2843, -48148, -75398, -94580, -247914, -273780, -319003),]
+</code></pre>
 <div id="feature-engineering" class="section level4">
 <h4>Feature Engineering:</h4>
 <p><strong>Does the season affect project success or failure?</strong> In my EDA of the Kickstarter data set in my <a href="https://taipach.shinyapps.io/Kickstarter-Shiny-App-master/">R shiny app</a> (<em>see the calendar graph</em>), I noticed that more projects tend to be launched in the summer months (June-September). Maybe winter holidays veer attention away from kickstarter projects. Or people are less likely to back a project when they have to spend their money on holiday gifts.</p>
 <blockquote>
-<p>Let’s add a column for duration of the project (in days).</p>
+<p><span style="color:red">Let’s add another column that tells the season in which the project was launched.</span></p>
 </blockquote>
 <p><strong>Does the duration of the project determine its success or failure?</strong> Super short projects might not have a chance to generate enough buzz. Long projects might deter people from backing because the deadline is no where in sight.</p>
 <blockquote>
-<p>Let’s add another column that tells the season in which the project was launched.</p>
+<p><span style="color:red">Let’s add a column for duration of the project (in days).</span></p>
 </blockquote>
 <pre class="r"><code># covert deadline values to date type
 kickstarter$deadline &lt;- as.Date(kickstarter$deadline, &quot;%Y-%m-%d&quot;)
@@ -620,20 +621,596 @@ svm.pred &lt;- predict(svm.model, testset[,-1])
 table(pred = svm.pred, true = testset$state)</code></pre>
 <pre><code>##             true
 ## pred         failed successful
-##   failed       5228       2426
-##   successful   1804       2208</code></pre>
+##   failed       5148       2420
+##   successful   1843       2255</code></pre>
 <pre class="r"><code>#generate a data table of predicted vs. actual
 x= data.frame(svm.pred)
 y = data.frame(testset[,1])
 prediction = cbind(x,y)</code></pre>
 </div>
+<div id="predictions-vs-actual-project-outcomes-first-50-predictions" class="section level4">
+<h4>Predictions vs Actual Project Outcomes (First 50 predictions)</h4>
+<pre class="r"><code>head(prediction, 50) %&gt;% kable() %&gt;%
+  kable_styling() %&gt;% scroll_box()</code></pre>
+<div style="border: 1px solid #ddd; padding: 5px; ">
+<table class="table" style="margin-left: auto; margin-right: auto;">
+<thead>
+<tr>
+<th style="text-align:left;">
+</th>
+<th style="text-align:left;">
+svm.pred
+</th>
+<th style="text-align:left;">
+testset…1.
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+207386
+</td>
+<td style="text-align:left;">
+failed
+</td>
+<td style="text-align:left;">
+successful
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+102857
+</td>
+<td style="text-align:left;">
+failed
+</td>
+<td style="text-align:left;">
+failed
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+314526
+</td>
+<td style="text-align:left;">
+successful
+</td>
+<td style="text-align:left;">
+successful
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+34030
+</td>
+<td style="text-align:left;">
+failed
+</td>
+<td style="text-align:left;">
+failed
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+17398
+</td>
+<td style="text-align:left;">
+failed
+</td>
+<td style="text-align:left;">
+failed
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+90626
+</td>
+<td style="text-align:left;">
+failed
+</td>
+<td style="text-align:left;">
+failed
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+63867
+</td>
+<td style="text-align:left;">
+failed
+</td>
+<td style="text-align:left;">
+failed
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+217573
+</td>
+<td style="text-align:left;">
+successful
+</td>
+<td style="text-align:left;">
+successful
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+309293
+</td>
+<td style="text-align:left;">
+failed
+</td>
+<td style="text-align:left;">
+failed
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+37463
+</td>
+<td style="text-align:left;">
+failed
+</td>
+<td style="text-align:left;">
+failed
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+64340
+</td>
+<td style="text-align:left;">
+failed
+</td>
+<td style="text-align:left;">
+successful
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+171038
+</td>
+<td style="text-align:left;">
+successful
+</td>
+<td style="text-align:left;">
+successful
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+117623
+</td>
+<td style="text-align:left;">
+successful
+</td>
+<td style="text-align:left;">
+successful
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+191579
+</td>
+<td style="text-align:left;">
+failed
+</td>
+<td style="text-align:left;">
+successful
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+103116
+</td>
+<td style="text-align:left;">
+failed
+</td>
+<td style="text-align:left;">
+failed
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+81098
+</td>
+<td style="text-align:left;">
+failed
+</td>
+<td style="text-align:left;">
+failed
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+149364
+</td>
+<td style="text-align:left;">
+failed
+</td>
+<td style="text-align:left;">
+successful
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+12145
+</td>
+<td style="text-align:left;">
+failed
+</td>
+<td style="text-align:left;">
+failed
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+190577
+</td>
+<td style="text-align:left;">
+failed
+</td>
+<td style="text-align:left;">
+failed
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+161392
+</td>
+<td style="text-align:left;">
+failed
+</td>
+<td style="text-align:left;">
+failed
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+216737
+</td>
+<td style="text-align:left;">
+failed
+</td>
+<td style="text-align:left;">
+failed
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+141434
+</td>
+<td style="text-align:left;">
+failed
+</td>
+<td style="text-align:left;">
+failed
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+327258
+</td>
+<td style="text-align:left;">
+failed
+</td>
+<td style="text-align:left;">
+successful
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+271782
+</td>
+<td style="text-align:left;">
+successful
+</td>
+<td style="text-align:left;">
+successful
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+12301
+</td>
+<td style="text-align:left;">
+successful
+</td>
+<td style="text-align:left;">
+failed
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+249240
+</td>
+<td style="text-align:left;">
+successful
+</td>
+<td style="text-align:left;">
+failed
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+308325
+</td>
+<td style="text-align:left;">
+failed
+</td>
+<td style="text-align:left;">
+failed
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+218964
+</td>
+<td style="text-align:left;">
+failed
+</td>
+<td style="text-align:left;">
+successful
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+269582
+</td>
+<td style="text-align:left;">
+failed
+</td>
+<td style="text-align:left;">
+failed
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+187756
+</td>
+<td style="text-align:left;">
+failed
+</td>
+<td style="text-align:left;">
+failed
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+73742
+</td>
+<td style="text-align:left;">
+failed
+</td>
+<td style="text-align:left;">
+successful
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+256154
+</td>
+<td style="text-align:left;">
+failed
+</td>
+<td style="text-align:left;">
+failed
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+218953
+</td>
+<td style="text-align:left;">
+failed
+</td>
+<td style="text-align:left;">
+successful
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+79002
+</td>
+<td style="text-align:left;">
+successful
+</td>
+<td style="text-align:left;">
+failed
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+118170
+</td>
+<td style="text-align:left;">
+failed
+</td>
+<td style="text-align:left;">
+failed
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+282028
+</td>
+<td style="text-align:left;">
+failed
+</td>
+<td style="text-align:left;">
+successful
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+21927
+</td>
+<td style="text-align:left;">
+failed
+</td>
+<td style="text-align:left;">
+failed
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+192510
+</td>
+<td style="text-align:left;">
+failed
+</td>
+<td style="text-align:left;">
+failed
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+148753
+</td>
+<td style="text-align:left;">
+failed
+</td>
+<td style="text-align:left;">
+failed
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+264061
+</td>
+<td style="text-align:left;">
+failed
+</td>
+<td style="text-align:left;">
+successful
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+280924
+</td>
+<td style="text-align:left;">
+successful
+</td>
+<td style="text-align:left;">
+successful
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+159967
+</td>
+<td style="text-align:left;">
+failed
+</td>
+<td style="text-align:left;">
+successful
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+255262
+</td>
+<td style="text-align:left;">
+failed
+</td>
+<td style="text-align:left;">
+failed
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+69041
+</td>
+<td style="text-align:left;">
+failed
+</td>
+<td style="text-align:left;">
+failed
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+35008
+</td>
+<td style="text-align:left;">
+successful
+</td>
+<td style="text-align:left;">
+failed
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+74833
+</td>
+<td style="text-align:left;">
+failed
+</td>
+<td style="text-align:left;">
+successful
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+26075
+</td>
+<td style="text-align:left;">
+failed
+</td>
+<td style="text-align:left;">
+failed
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+122541
+</td>
+<td style="text-align:left;">
+successful
+</td>
+<td style="text-align:left;">
+successful
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+31254
+</td>
+<td style="text-align:left;">
+failed
+</td>
+<td style="text-align:left;">
+failed
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+159672
+</td>
+<td style="text-align:left;">
+failed
+</td>
+<td style="text-align:left;">
+failed
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
 <div id="number-of-missclassified-predictions" class="section level4">
 <h4>Number of missclassified predictions</h4>
 <pre class="r"><code>#calculate the number of misclassified predictions
 sum(prediction[,1]!=prediction[,2])</code></pre>
-<pre><code>## [1] 4230</code></pre>
+<pre><code>## [1] 4263</code></pre>
+</div>
+<div id="f1-score-results" class="section level4">
+<h4>F1-score Results</h4>
 <pre class="r"><code>F1_Score(y_true = prediction$testset...1.,y_pred = prediction$svm.pred, positive = &quot;successful&quot;)</code></pre>
-<pre><code>## [1] 0.5107564</code></pre>
+<pre><code>## [1] 0.5140773</code></pre>
 <p>Our svm model predicted 63.5% of our test observations correctly. Looking at the F1-Score, we can see that that the model predicts the correct result 11% more than a random guess: Not great but not bad either.</p>
 </div>
 <div id="future-steps" class="section level4">
