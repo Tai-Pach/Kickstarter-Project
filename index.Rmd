@@ -4,7 +4,7 @@ output:
   html_document:
     theme: journal
     highlight: textmate
-    code_folding: show
+    code_folding: hide
 ---
 
 Have you ever had a creative project in mind but lacked the funds to bring it to life?
@@ -17,7 +17,7 @@ Not to deter you, but only about 36% of projects get funded.  So what is the mag
 
 
 *Preliminary data cleaning and feature engineering*
-```{r, message=FALSE, collapse=TRUE}
+```{r, message=FALSE}
 library(dplyr)
 library(data.table)
 library(kableExtra)
@@ -35,15 +35,14 @@ kickstarter = kickstarter[c(-2843, -48148, -75398, -94580, -247914, -273780, -31
 ####Feature Engineering:
 **Does the season affect project success or failure?**
 In my EDA of the Kickstarter data set in my [R shiny app](https://taipach.shinyapps.io/Kickstarter-Shiny-App-master/) (*see the calendar graph*), I noticed that more projects tend to be launched in the summer months (June-September).
-Maybe winter holidays veer attention away from kickstarter projects. Or people are less likely to back a project when they have to spend their money on holiday gifts.
+Maybe winter holidays veer attention away from kickstarter projects. Or people are less likely to back a project when they have to spend their money on holiday gifts. 
 
-> <span style="color:red">Let's add another column that tells the season in which the project was launched.</span>
+> Let's add a column for duration of the project (in days).
 
 **Does the duration of the project determine its success or failure?**
 Super short projects might not have a chance to generate enough buzz.  Long projects might deter people from backing because the deadline is no where in sight.
 
-> <span style="color:red">Let's add a column for duration of the project (in days).</span>
-
+> Let's add another column that tells the season in which the project was launched.
 
 ```{r}
 # covert deadline values to date type
@@ -52,8 +51,7 @@ kickstarter$deadline <- as.Date(kickstarter$deadline, "%Y-%m-%d")
 kickstarter$launched <- as.Date(kickstarter$launched, '%Y-%m-%d %H:%M:%S')
 # add a new column for project duration
 kickstarter$project_duration_days <- kickstarter$deadline - kickstarter$launched
-# add a new column for project duration
-kickstarter$project_duration_days <- kickstarter$deadline - kickstarter$launched
+
 
 #write a function to extract the season from a datetime object
 getSeason <- function(DATES) {
@@ -103,6 +101,9 @@ subset1$project_duration_days = as.numeric(subset1$project_duration_days)
 
 #omit NA values
 subset1 = na.omit(subset1)
+
+#Binarize state variables
+subset1$state <- ifelse(subset1$state=="successful", 1, 0)
 ```
 
 ```{r}
@@ -116,7 +117,7 @@ testindex <- sample(index, trunc(length(index)/3))
 testset <- subset_sample[testindex,]
 trainset <- subset_sample[-testindex,]
 
-svm.model <- svm(state ~ . , data = trainset, cost = 100, gamma = 1)
+svm.model <- svm(state ~ . , data = trainset, cost = 75, gamma = 1)
 
 #Test the model on the test set
 svm.pred <- predict(svm.model, testset[,-1])
@@ -133,26 +134,26 @@ y = data.frame(testset[,1])
 prediction = cbind(x,y)
 ```
 
+####Finding ROC AUC
+In classification problems, it is better to evaluate predictions based on probabilities.  For example, instead predicting whether a project succeeds or fail, it is a better practice to determine the probability of whether a project will succeed or fail.  An ROC-AUC can help visualize this.
 
-####Predictions vs Actual Project Outcomes (First 50 predictions)
+Let's first see the arean under curve value and the confidence interval of the AUC:
 ```{r}
-head(prediction, 50) %>% kable() %>%
-  kable_styling() %>% scroll_box()
+######pROC####
+library(pROC)
+roc_obj <- roc(prediction$testset...1., prediction$svm.pred)
+auc(roc_obj)
+ci(roc_obj)
 ```
 
 
-####Number of missclassified predictions
 ```{r}
-#calculate the number of misclassified predictions
-sum(prediction[,1]!=prediction[,2])
-```
-####F1-score Results
-```{r}
-F1_Score(y_true = prediction$testset...1.,y_pred = prediction$svm.pred, positive = "successful")
+plot(roc_obj, print.auc=TRUE, auc.polygon=TRUE, grid=c(0.1, 0.2), grid.col=c("green", "red"),max.auc.polygon=TRUE, auc.polygon.col="skyblue", print.thres=FALSE)
+
 ```
 
 
-Our svm model predicted 63.5% of our test observations correctly.  Looking at the F1-Score, we can see that that the model predicts the correct result 11% more than a random guess:  Not great but not bad either.  
+Our SVM model has an auc of 0.6389.  Aucs greater than 0.5 tell us our model is predicting better than just a random guess.  However, an AUC of 0.64 leaves much in the way of model improvements.
 
 ####Future steps
 To increase our model accuracy we can:
