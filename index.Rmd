@@ -124,13 +124,10 @@ svm.pred <- predict(svm.model, testset[,-1])
 
 
 
-#create a confusion matrix
-table(pred = svm.pred, true = testset$state)
-
-
 #generate a data table of predicted vs. actual
 x= data.frame(svm.pred)
 y = data.frame(testset[,1])
+
 prediction = cbind(x,y)
 ```
 
